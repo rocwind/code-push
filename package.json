@@ -31,7 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "backslash": "0.2.0",
-    "chalk": "4.1.2",
+    "chalk": "5.0.1",
     "cli-table3": "0.6.1",
     "code-push": "2.0.7",
     "email-validator": "2.0.4",
