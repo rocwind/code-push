@@ -291,6 +291,8 @@ export function runReactNativeBundleCommand(
         entryFile,
         '--platform',
         platform,
+        '--minify',
+        'false'
     ]);
 
     if (sourcemapOutput) {
