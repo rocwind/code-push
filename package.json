@@ -54,7 +54,7 @@
     "which": "2.0.2",
     "wordwrap": "1.0.0",
     "xml2js": "0.4.23",
-    "yargs": "17.4.1",
+    "yargs": "17.5.1",
     "yazl": "2.5.1"
   },
   "devDependencies": {
