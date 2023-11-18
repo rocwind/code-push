@@ -76,6 +76,28 @@ export function getReactNativeProjectAppVersion(
         }
 
         if (parsedPlist && parsedPlist.CFBundleShortVersionString) {
+            if (/MARKETING_VERSION/i.test(parsedPlist.CFBundleShortVersionString)) {
+                try {
+                    const xcodeProjectConfig =
+                        path.resolve(resolvedPlistFile, "../") +
+                        ".xcodeproj/project.pbxproj";
+                    out.text(
+                        'Using xcodeProjectConfig version, file path "'
+                            .concat(xcodeProjectConfig, '".\n')
+                    );
+                    const xcodeContents = fs.readFileSync(xcodeProjectConfig).toString();
+                    const xcodeVersion = [...xcodeContents.matchAll(/Release[\s\S]*MARKETING_VERSION = (\d+\.\d+\.\d+)/gm)][0][1];
+                    out.text(
+                        'Using xcodeProjectConfig version, version "'.concat(
+                            xcodeVersion,
+                            '".\n'
+                        )
+                    );
+                    parsedPlist.CFBundleShortVersionString = xcodeVersion;
+                } catch (error) {
+
+                }
+            }
             if (isValidVersion(parsedPlist.CFBundleShortVersionString)) {
                 out.text(
                     `Using the target binary version value "${parsedPlist.CFBundleShortVersionString}" from "${resolvedPlistFile}".\n`,
@@ -538,6 +560,17 @@ function getHermesCommand(): string {
         }
     };
     // assume if hermes-engine exists it should be used instead of hermesvm
+    const hermesEngineNew = path.join(
+        'node_modules',
+        'react-native',
+        'sdks',
+        'hermesc',
+        getHermesOSBin(),
+        getHermesOSExe()
+    );
+    if (fileExists(hermesEngineNew)) {
+        return hermesEngineNew;
+    }
     const hermesEngine = path.join(
         'node_modules',
         'hermes-engine',
