@@ -86,7 +86,17 @@ export function getReactNativeProjectAppVersion(
                             .concat(xcodeProjectConfig, '".\n')
                     );
                     const xcodeContents = fs.readFileSync(xcodeProjectConfig).toString();
-                    const xcodeVersion = [...xcodeContents.matchAll(/Release[\s\S]*MARKETING_VERSION = (\d+\.\d+\.\d+)/gm)][0][1];
+
+                    const xcodeVersionRegex = /Release[\s\S]*MARKETING_VERSION = (\d+\.\d+\.\d+)/gm;
+                    let xcodeVersion;
+                    let match;
+
+                    while ((match = xcodeVersionRegex.exec(xcodeContents)) !== null) {
+                        // 这个循环将重复执行，直到没有更多匹配项
+                        // match[1] 将包含第一个捕获组的值，即版本号
+                        xcodeVersion = match[1];
+                        break; // 因为我们只需要第一个匹配项，所以找到后就可以退出循环
+                    }
                     out.text(
                         'Using xcodeProjectConfig version, version "'.concat(
                             xcodeVersion,
@@ -356,7 +366,7 @@ export function runHermesEmitBinaryCommand(
 ): Promise<void> {
     const hermesArgs: string[] = [];
     const envNodeArgs: string = process.env.CODE_PUSH_NODE_ARGS;
-
+    out.text(chalk.cyan('Converting JS bundle to byte code via Hermes, running command:\n'));
     if (typeof envNodeArgs !== 'undefined') {
         Array.prototype.push.apply(hermesArgs, envNodeArgs.trim().split(/\s+/));
     }
@@ -480,29 +490,41 @@ export function runHermesEmitBinaryCommand(
     });
 }
 
-export function getHermesEnabled(gradleFile?: string): Promise<boolean> {
-    let buildGradlePath: string = path.join('android', 'app');
-    if (gradleFile) {
-        buildGradlePath = gradleFile;
-    }
-    if (fs.lstatSync(buildGradlePath).isDirectory()) {
+export async function getHermesEnabled(gradleFile?: string): Promise<boolean> {
+    let buildGradlePath = gradleFile ?? path.join('android', 'app');
+
+    if (await fileDoesNotExistOrIsDirectory(buildGradlePath)) {
         buildGradlePath = path.join(buildGradlePath, 'build.gradle');
     }
 
-    if (fileDoesNotExistOrIsDirectory(buildGradlePath)) {
+    if (await fileDoesNotExistOrIsDirectory(buildGradlePath)) {
         throw new Error(`Unable to find gradle file "${buildGradlePath}".`);
     }
 
-    return g2js
-        .parseFile(buildGradlePath)
-        .catch(() => {
-            throw new Error(
-                `Unable to parse the "${buildGradlePath}" file. Please ensure it is a well-formed Gradle file.`,
-            );
-        })
-        .then((buildGradle: any) => {
-            return Array.from(buildGradle['project.ext.react']).includes('enableHermes: true');
-        });
+    let gradlePropertyPath: string = path.join('android', 'gradle.properties');
+
+    if (await fileDoesNotExistOrIsDirectory(gradlePropertyPath)) {
+        throw new Error(`Unable to find gradle file "${gradlePropertyPath}".`);
+    }
+
+    try {
+        const buildGradle = await g2js.parseFile(buildGradlePath);
+        const buildProperty = await g2js.parseFile(gradlePropertyPath);
+
+        const hermesPropertyEnabled = buildProperty.hermesEnabled ?? false;
+        let hermesBuildEnabled = false;
+
+        // 如果buildGradle["project.ext.react"]是一个数组，则继续处理
+        if (Array.isArray(buildGradle["project.ext.react"])) {
+            const reactSettings: string[] = buildGradle["project.ext.react"];
+            hermesBuildEnabled = reactSettings.some(line => /^enableHermes\s*:\s*true/.test(line));
+        }
+
+        return hermesPropertyEnabled || hermesBuildEnabled;
+    } catch (error) {
+        // error.message 可能需要根据实际在 try 块中发生的错误进行调整
+        throw new Error(`An error occurred while processing the Gradle files: ${error.message}`);
+    }
 }
 
 export function getiOSHermesEnabled(podFile: string): Promise<boolean> {
