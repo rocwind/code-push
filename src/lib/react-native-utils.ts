@@ -86,6 +86,7 @@ export function getReactNativeProjectAppVersion(
                             .concat(xcodeProjectConfig, '".\n')
                     );
                     const xcodeContents = fs.readFileSync(xcodeProjectConfig).toString();
+
                     const xcodeVersionRegex = /Release[\s\S]*MARKETING_VERSION = (\d+\.\d+\.\d+)/gm;
                     let xcodeVersion;
                     let match;
