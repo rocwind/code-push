@@ -1,6 +1,6 @@
 {
   "name": "@shm-open/code-push-cli",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "Management CLI for the CodePush service",
   "main": "bin/cli.js",
   "scripts": {
