@@ -46,6 +46,7 @@ CodePush是一个云服务，它能让Cordova和React Native的开发者将手�
 1. 使用CodePush CLI创建一个[CodePush 账号](#创建账号)
 2. 注册你的CodePush[应用](#应用管理), 并[分享](#应用合作)给你团队的其它开发者
 3. 用[Cordova插件](http://github.com/Microsoft/cordova-plugin-code-push) 或 [React Native插件](http://github.com/Microsoft/react-native-code-push)配置好CodePush并指向你希望的部署环境
+    *注意：在iOS和Android使用自定义的ServerURL参数名大小写不同，iOS是在plist里新增CodePushServerURL，Android是在res/values/strings.xml 添加CodePushServerUrl*
 4. [发布](#发布更新)更新
 5. 活的长而成功！[详细资料](https://en.wikipedia.org/wiki/Vulcan_salute)
 
