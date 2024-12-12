@@ -835,7 +835,7 @@ function printCollaboratorsList(format: string, collaborators: CollaboratorMap):
     } else if (format === 'table') {
         out.table(
             out.getCommandOutputTableOptions(generateColoredTableTitles(['E-mail Address'])),
-            collaborators.map((email) => [getCollaboratorDisplayName(email, collaborators[email])]),
+            Object.keys(collaborators).map((email) => [getCollaboratorDisplayName(email, collaborators[email])]),
         );
     }
 }
